@@ -1,4 +1,6 @@
+from dataclasses import dataclass, field
 import os
+import textwrap
 
 def clear_screen() -> None:
     if os.name == "nt":
@@ -9,10 +11,21 @@ def clear_screen() -> None:
 
 def main_menu() -> tuple[int,str]:
     clear_screen()
-    print("1. Deposit")
-    print("2. Withdraw")
-    print("3. Statement")
-    print("4. Exit")
+    menu: str = """
+    ================= Main Menu =================
+
+    [1]\tDeposit
+    [2]\tWithdraw
+    [3]\tStatement
+    [4]\tNew Account
+    [5]\tList Accounts
+    [6]\tNew User
+    [7]\tExit
+
+    ============================================
+    """
+
+    print(textwrap.dedent(menu))
 
     try:
         choice = int(input("Enter choice: "))
@@ -82,17 +95,81 @@ def withdraw(balance: float, withdrawals: int, operations: list[str]) -> float:
     return balance
 
 def statement(balance: float, operations: list[str]) -> None:
-    print("=== Statement ===")
-    for operation in operations:
-        print(operation)
-    print(f"\nBalance: ${balance:.2f}")
-    print("=================")
-    
+    stmnt = "=============== Statement =================\n"
+    stmnt += "\n".join(operations) if operations else "No operations to display."
+    stmnt += f"\n\nBalance:\t${balance:.2f}"
+    stmnt += "\n==========================================="
+
+    print(stmnt)
+
+@dataclass
+class Account:
+    cpf: str
+    agency: str
+    number: int
+
+@dataclass
+class User:
+    name: str
+    cpf: str
+    address: str
+    date_of_birth: str
+    accounts: list[Account] = field(default_factory=list)
+
+def new_user(users: dict[str, User]) -> None:
+    cpf = input("Enter CPF: ")
+
+    if cpf in users:
+        print("User already exists.")
+        return
+
+    name = input("Enter full name: ")
+    address = input("Enter full address: ")
+    date_of_birth = input("Enter date of birth (yyyy-mm-dd): ")
+
+    user = User(name, cpf, address, date_of_birth)
+    users[cpf] = user
+
+    print("User created successfully.")
+
+def new_account(users: dict[str, User], accounts: list[Account]) -> None:
+    AGENCY: str = "0001"
+
+    cpf = input("Enter CPF: ")
+
+    if cpf not in users:
+        print("User not found.")
+        return
+
+    user = users[cpf]
+    account = Account(cpf, AGENCY, len(accounts) + 1)
+    user.accounts.append(account)
+    accounts.append(account)
+
+    print("Account created successfully.")
+
+def list_accounts(accounts: list[Account]) -> None:
+    if not accounts:
+        print("No accounts to display.")
+        return
+
+    for account in accounts:
+        line = f"""
+        ================= Account =================
+        Owner:\t\t\t {account.cpf}
+        Agency:\t\t\t {account.agency}
+        Account Number:\t\t {account.number}
+        ===========================================
+        """
+        print(textwrap.dedent(line))
 
 def main() -> None:
     balance: float = 0.0
     withdrawals: int = 0
     operations: list[str] = []
+
+    users: dict[str, User] = {}
+    accounts: list[Account] = []
 
     while True:
         choice, message = main_menu()
@@ -106,6 +183,12 @@ def main() -> None:
             case 3:
                 statement(balance, operations)
             case 4:
+                new_account(users, accounts)
+            case 5:
+                list_accounts(accounts)
+            case 6:
+                new_user(users)
+            case 7:
                 break
             case -1:
                 print(message)
