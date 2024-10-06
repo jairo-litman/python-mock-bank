@@ -11,7 +11,7 @@ def main_menu() -> tuple[int,str]:
     clear_screen()
     print("1. Deposit")
     print("2. Withdraw")
-    print("3. Check Balance")
+    print("3. Statement")
     print("4. Exit")
 
     try:
@@ -22,7 +22,7 @@ def main_menu() -> tuple[int,str]:
     return choice, ""
 
 
-def deposit(balance: float) -> float:
+def deposit(balance: float, operations: list[str]) -> float:
     try:
         amount = float(input("Enter amount to deposit: "))
     except ValueError:
@@ -35,7 +35,9 @@ def deposit(balance: float) -> float:
     
     balance += amount
 
-    print(f"Successfully deposited {amount}, new balance: {balance}")
+    operation: str = f"Deposited ${amount:.2f}, new balance: ${balance:.2f}"
+    operations.append(operation)
+    print(operation)
 
     return balance
 
@@ -58,7 +60,7 @@ def validate_withdrawal(amount: float, balance: float, withdrawals: int) -> tupl
     
     return True, ""
     
-def withdraw(balance: float, withdrawals: int) -> float:
+def withdraw(balance: float, withdrawals: int, operations: list[str]) -> float:
     try:
         amount = float(input("Enter amount to withdraw: "))
     except ValueError:
@@ -73,14 +75,24 @@ def withdraw(balance: float, withdrawals: int) -> float:
     balance -= amount
     withdrawals += 1
 
-    print(f"Successfully withdrew {amount}, new balance: {balance}")
+    operation: str = f"Withdrew ${amount:.2f}, new balance: ${balance:.2f}"
+    operations.append(operation)
+    print(operation)
 
     return balance
+
+def statement(balance: float, operations: list[str]) -> None:
+    print("=== Statement ===")
+    for operation in operations:
+        print(operation)
+    print(f"\nBalance: ${balance:.2f}")
+    print("=================")
     
 
 def main() -> None:
     balance: float = 0.0
     withdrawals: int = 0
+    operations: list[str] = []
 
     while True:
         choice, message = main_menu()
@@ -88,18 +100,18 @@ def main() -> None:
         clear_screen()
         match choice:
             case 1:
-                balance = deposit(balance)
+                balance = deposit(balance, operations)
             case 2:
-                balance = withdraw(balance, withdrawals)
+                balance = withdraw(balance, withdrawals, operations)
             case 3:
-                print(f"Balance: {balance}")
+                statement(balance, operations)
             case 4:
                 break
             case -1:
                 print(message)
                 pass
             case _:
-                print("\nInvalid choice. Please try again.")
+                print("Invalid choice. Please try again.")
 
         input("\nPress Enter to continue...")
 
